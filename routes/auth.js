@@ -13,6 +13,12 @@ router.post("/signup", (req,res) => {
         res.status(422).send(error.details[0].message);
         console.log(error)
     } else {
+
+        if(req.body) {
+            console.log("Bu kullanıcı zaten var")
+            return res.status(401).send("Bu kullanıcı zaten var" )
+        }
+
         res.send("auth works")
     }
 })
