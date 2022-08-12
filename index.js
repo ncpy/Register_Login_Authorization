@@ -6,14 +6,10 @@ app.get("/", (req,res) => {
     res.send("We did it")
 })
 
-// 2 bunun gibi onlarca post get put metodları yazılabilir ama 
-//burada kalabalık görüntü vermemek adına ROUTES klasörü oluşturp 
-//buradan oraya erişim sağlamaya çalışacağız --> 3. noya bak
-//app.post("/sign")
-
-// 3 =>1 ile 3 birlikte
-// localhost:5000/auth/test adresine gidilirse sonuç;
+// 5 --> postman de JSON yazmadan gönderin UNDEFINED
+// json body {username..,pass..} data ile post edilince sonuç verir
 const auth = require("./routes/auth")
+app.use(express.json())
 app.use("/auth", auth)
 
 
