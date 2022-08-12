@@ -13,16 +13,16 @@ app.use(express.json())
 app.use("/auth", auth)
 
 
+const dotenv = require("dotenv")
+dotenv.config()
+const mongoose = require("mongoose")
+mongoose
+    .connect(process.env.MONGO_URL)
+    .then(() => console.log("DB connected"))
+    .catch((err) => console.log(err))
 
 
 
-
-
-
-
-
-
-
-app.listen(5000, () => {
+app.listen(process.env.PORT || 5000, () => {
     console.log("backend çalışıyor.")
 })

@@ -7,23 +7,40 @@ router.get("/test", (req,res) => {
 
 // 6
 //postman de {"email":"ali@g.com", "password": "123"} gibi dene
-router.post("/signup", (req,res) => {
+const { User } = require("../models/User");
+router.post("/signup", async(req,res) => {
     const { value, error } = validate(req.body);
-    if (error) {
+    if (error) { //validation error
         res.status(422).send(error.details[0].message);
         console.log(error)
-    } else {
-
-        if(req.body) {
+    } else { //validation PASS
+        console.log(value)
+        const user = await User.findOne({ email:req.body.email }) //user exist ?
+        if(user) { //user vardı
             console.log("Bu kullanıcı zaten var")
             return res.status(401).send("Bu kullanıcı zaten var" )
+        } else { //yeni user yani DB ye kaydet
+            try {
+                // save to MongoDB
+                const { password, email } = value // const { password, email } = validate(req.body).value
+                const newUser = new User({
+                    email: email,
+                    password: password
+                })
+                const savedUser = await newUser.save()
+                res.status(201).json(savedUser)
+                //console.log("savedUser: "+savedUser) //yukarıdakinin işini bitirmesini bekledikten sonra yazmaya çalışır
+            } catch(err){
+                console.log("err: "+err)
+                res.status(500).json(err)
+            }
         }
 
-        res.send("auth works")
+        //res.send("auth works") //dikkat et 1 req için 1 res göndrebilirsin
     }
 })
 const passwordComplexity = require("joi-password-complexity")
-const Joi = require("joi")
+const Joi = require("joi");
 const validate = (data) => {
     const schema = Joi.object().keys({
         email: Joi.string()
