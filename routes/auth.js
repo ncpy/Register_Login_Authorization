@@ -50,7 +50,7 @@ router.post("/signup", async(req,res) => {
             { id: savedUser._id, email }, //id: => savedUser or newUser or no need here 
             process.env.JWT_PRIVATEKEY, 
             { expiresIn: "3d" }) // token valid for 3days
-            
+
         console.log("token: "+token)
 
     } catch(err){
@@ -60,6 +60,15 @@ router.post("/signup", async(req,res) => {
 
         //res.send("auth works") //dikkat et 1 req için 1 res göndrebilirsin
     
+})
+
+// tüm kullanıcıları GETir (get olduğu için localhost:5000/auth/alluser a da bak)
+router.get("/alluser", async (req,res) => {
+    try {
+        const users = await User.find()
+        console.log(users)
+        res.status(200).json(users)
+    } catch (error) {}
 })
 
 
