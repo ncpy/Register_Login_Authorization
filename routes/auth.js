@@ -8,12 +8,13 @@ router.get("/test", (req,res) => {
 // 6
 //postman de {"email":"ali@g.com", "password": "123"} gibi dene
 router.post("/signup", (req,res) => {
-    const { password, email } = req.body
-    const data = req.body
-    console.log("tüm log: ",validate(data))
-    console.log("value log: ",validate(data).value)
-    console.log("hata log: ",validate(data)?.error)
-    res.send("auth works")
+    const { value, error } = validate(req.body);
+    if (error) {
+        res.status(422).send(error.details[0].message);
+        console.log(error)
+    } else {
+        res.send("auth works")
+    }
 })
 const passwordComplexity = require("joi-password-complexity")
 const Joi = require("joi")
