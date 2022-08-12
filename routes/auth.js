@@ -43,6 +43,16 @@ router.post("/signup", async(req,res) => {
         const savedUser = await newUser.save()
         console.log("savedUser: "+savedUser)
         res.status(201).json(savedUser)
+
+        // + 10
+        const JWT = require("jsonwebtoken")
+        const token = await JWT.sign(
+            { id: savedUser._id, email }, //id: => savedUser or newUser or no need here 
+            process.env.JWT_PRIVATEKEY, 
+            { expiresIn: "3d" }) // token valid for 3days
+            
+        console.log("token: "+token)
+
     } catch(err){
         console.log("err: "+err)
         res.status(500).json(err)
