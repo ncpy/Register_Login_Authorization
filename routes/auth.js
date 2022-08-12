@@ -78,8 +78,17 @@ router.post("/login", async (req,res) => {
         return res.status(401).send("Geçersiz giriş.." )
     }
     else {
-        console.log("Login yaptınız ", user) //sadece emaile bakarak
-        res.status(200).send("LOGGED IN.: \n\n"+user)
+        //parola kontrolü de gerekli deşifre ederek..
+        const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.PASSPHRASE_SECRET);
+        const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
+        if(OriginalPassword !== req.body.password) {
+            console.log("Geçersiz giriş.. wrong credentials!")
+            return res.status(401).json("Geçersiz giriş..")
+        } else {
+            console.log("Login yaptınız ", user) // email ve parolaya bakarak
+            console.log("OriginalPassword: "+OriginalPassword)
+            res.status(200).send("LOGGED IN.: \n\n"+user)
+        }
     }
 })
 
