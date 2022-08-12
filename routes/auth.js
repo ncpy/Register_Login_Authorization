@@ -77,19 +77,29 @@ router.post("/login", async (req,res) => {
         console.log("Geçersiz giriş.. Invalid credentials")
         return res.status(401).send("Geçersiz giriş.." )
     }
-    else {
-        //parola kontrolü de gerekli deşifre ederek..
-        const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.PASSPHRASE_SECRET);
-        const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
-        if(OriginalPassword !== req.body.password) {
-            console.log("Geçersiz giriş.. wrong credentials!")
-            return res.status(401).json("Geçersiz giriş..")
-        } else {
-            console.log("Login yaptınız ", user) // email ve parolaya bakarak
-            console.log("OriginalPassword: "+OriginalPassword)
-            res.status(200).send("LOGGED IN.: \n\n"+user)
-        }
+    
+    //parola kontrolü de gerekli deşifre ederek..
+    const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.PASSPHRASE_SECRET);
+    const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
+    if(OriginalPassword !== req.body.password) {
+        console.log("Geçersiz giriş.. wrong credentials!")
+        return res.status(401).json("Geçersiz giriş..")
     }
+    
+    console.log("Login yaptınız ", user) // email ve parolaya bakarak
+    console.log("OriginalPassword: "+OriginalPassword)
+    //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
+
+    const JWT = require("jsonwebtoken")
+    const token = await JWT.sign(
+        { id: user._id }, 
+        process.env.JWT_PRIVATEKEY, 
+        { expiresIn: "3d" })
+
+    console.log("token: "+token)
+    return res.status(200).json(token)
+    
+    
 })
 
 
