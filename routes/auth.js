@@ -71,5 +71,17 @@ router.get("/alluser", async (req,res) => {
     } catch (error) {}
 })
 
+router.post("/login", async (req,res) => {
+    const user = await User.findOne({ email: req.body.email })
+    if(!user) {
+        console.log("Geçersiz giriş.. Invalid credentials")
+        return res.status(401).send("Geçersiz giriş.." )
+    }
+    else {
+        console.log("Login yaptınız ", user) //sadece emaile bakarak
+        res.status(200).send("LOGGED IN.: \n\n"+user)
+    }
+})
+
 
 module.exports = router
