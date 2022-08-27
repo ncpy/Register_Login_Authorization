@@ -27,6 +27,10 @@ app.use("/auth", auth)
 const refreshToken = require("./routes/refreshToken")
 app.use("/refreshTkn", refreshToken)
 
+//rol bazlı yetkilendirme
+const posts = require("./routes/posts")
+app.use("/posts", posts)
+
 
 const dotenv = require("dotenv")
 dotenv.config()
