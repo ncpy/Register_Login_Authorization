@@ -1,5 +1,6 @@
 const router = require("express").Router()
 const JWT = require("jsonwebtoken")
+const verifyRefreshToken = require("../utils/verifyRefreshToken")
 
 
 // http://localhost:5000/refreshTkn
@@ -12,18 +13,21 @@ router.get("/", async (req, res) => {
     if(!refreshToken)
         return res.send("refresh token yok")
     
-    JWT.verify(refreshToken, process.env.JWT_REFRESH_TOKEN_KEY, (err, tokenDetails) => {
-        if(err)
-            return res.send("doğrulanamadı")
-        
+    verifyRefreshToken(refreshToken)       //? req.body.refreshToken
+    .then(({tokenDetails}) => {
         const accessToken = JWT.sign(
-            {},//buraya normalde id/role gibi bilgiler eklenmeli
+            { _id: tokenDetails._id, },
             process.env.JWT_ACCESS_TOKEN_KEY,
             { expiresIn: "30s" }
         )
 
-        res.send({accessToken})
+        res.status(200).json({
+            error: false, 
+            accessToken, 
+            message:"Access token oluşturuldu"
+        })
     })
+    .catch(err => res.status(400).json(err))
 
 })
 
