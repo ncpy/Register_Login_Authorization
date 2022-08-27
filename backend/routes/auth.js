@@ -110,5 +110,20 @@ router.post("/login", async (req,res) => {
 
 })
 
+router.post("/logout", async (req,res) => {
+
+    const cookies = req.cookies
+    if (!cookies.cookieRefTkn) {
+        console.log("token/çerez bulunamadı")
+        return res.status(200).json("token/çerez bulunamadı") //no content
+    }
+    
+    res.clearCookie("cookieRefTkn") //veya ..{ httpOnly:true, secure:true } ile birlikte
+
+    console.log("Logged OUT")
+    res.status(200).json("LOGGED OUT")
+
+})
+
 
 module.exports = router
