@@ -1,5 +1,6 @@
 const router = require("express").Router()
 const generateToken = require("../utils/generateTokens")
+const generateCookies = require("../utils/generateCookies");
 
 // index.js de 3.no ile birlikte
 router.get("/test", (req,res) => {
@@ -9,7 +10,7 @@ router.get("/test", (req,res) => {
 // 6
 //postman de {"email":"ali@g.com", "password": "123"} gibi dene
 const { User, validate } = require("../models/User");
-const CryptoJS = require("crypto-js")
+const CryptoJS = require("crypto-js");
 router.post("/signup", async(req,res) => {
     const { value, error } = validate(req.body);
     if (error) { //validation error
@@ -45,7 +46,11 @@ router.post("/signup", async(req,res) => {
         console.log("savedUser: "+savedUser)
         res.status(201).json(savedUser)
 
+        //access ve refreshtoken oluşturmak için
         const { accessToken, refreshToken } = generateToken(savedUser._id)
+        
+        //refresh token ı çerezlere(cookie) gönder
+        generateCookies(res, refreshToken) 
         
         return res.status(200).json({ accessToken,refreshToken })
 
@@ -90,7 +95,7 @@ router.post("/login", async (req,res) => {
     const { accessToken, refreshToken } = await generateToken(user._id)
 
     //refresh token ı çerezlere(cookie) gönder
-    const cerez = res.cookie("cookieRefTkn", refreshToken, { httpOnly:true, secure:false, expires: new Date(Date.now() + 30000) })
+    const cerez = generateCookies(res, refreshToken)
     console.log("çerez: ",cerez.req.cookies)
 
     

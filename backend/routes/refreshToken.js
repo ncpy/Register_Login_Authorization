@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
     
     //yani refresh token ı çağırmalıyız(request)
     //en sağlam yollardan biri de httpOnly destekli cookie ler aracılığıyla refresh token ı almaktır.
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies?.cookieRefTkn
 
     if(!refreshToken)
         return res.send("refresh token yok")
