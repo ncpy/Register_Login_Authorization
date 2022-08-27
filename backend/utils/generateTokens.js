@@ -6,14 +6,14 @@ const JWT = require("jsonwebtoken")
 const generateTokens = async(id) => {
   try {
     const accessToken = await JWT.sign(
-        { id: user._id, }, 
+        { id: id, }, 
         process.env.JWT_ACCESS_TOKEN_KEY, 
-        { expiresIn: "30s" }) 
+        { expiresIn: "10s" }) 
 
     const refreshToken = await JWT.sign(
-        { id: user._id,}, 
+        { id: id,}, 
         process.env.JWT_REFRESH_TOKEN_KEY, 
-        { expiresIn: "3d" }) 
+        { expiresIn: "30s" }) 
 
     console.log("accessToken: ",accessToken)
     console.log("refreshToken: ",refreshToken)

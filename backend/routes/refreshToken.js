@@ -16,7 +16,13 @@ router.get("/", async (req, res) => {
         if(err)
             return res.send("doğrulanamadı")
         
-        res.send("refresh token DOĞRULANDI")
+        const accessToken = JWT.sign(
+            {},//buraya normalde id/role gibi bilgiler eklenmeli
+            process.env.JWT_ACCESS_TOKEN_KEY,
+            { expiresIn: "30s" }
+        )
+
+        res.send({accessToken})
     })
 
 })

@@ -86,11 +86,16 @@ router.post("/login", async (req,res) => {
     console.log("OriginalPassword: "+OriginalPassword)
     //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
 
-    const { accessToken, refreshToken } = generateToken(savedUser._id)
+    const { accessToken, refreshToken } = await generateToken(user._id)
 
-    return res.status(200).json({ accessToken,refreshToken })
-    
-    
+    return res.status(200).json({ //to client
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+    }) 
+
 })
 
 
