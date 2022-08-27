@@ -12,6 +12,10 @@ const auth = require("./routes/auth")
 app.use(express.json())
 app.use("/auth", auth)
 
+//refresh token route
+const refreshToken = require("./routes/refreshToken")
+app.use("/refreshTkn", refreshToken)
+
 
 const dotenv = require("dotenv")
 dotenv.config()
