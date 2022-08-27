@@ -86,7 +86,14 @@ router.post("/login", async (req,res) => {
     console.log("OriginalPassword: "+OriginalPassword)
     //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
 
+    //access ve refreshtoken oluşturmak için
     const { accessToken, refreshToken } = await generateToken(user._id)
+
+    //refresh token ı çerezlere(cookie) gönder
+    const cerez = res.cookie("cookieRefTkn", refreshToken, { httpOnly:true, secure:false, expires: new Date(Date.now() + 30000) })
+    console.log("çerez: ",cerez.req.cookies)
+
+    
 
     return res.status(200).json({ //to client
         _id: user._id,
