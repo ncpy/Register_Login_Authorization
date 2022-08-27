@@ -22,7 +22,6 @@ mongoose
     .catch((err) => console.log(err))
 
 
-
 app.listen(process.env.PORT || 5000, () => {
     console.log("backend çalışıyor.")
 })

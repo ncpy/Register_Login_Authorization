@@ -1,4 +1,5 @@
 const router = require("express").Router()
+const generateToken = require("../utils/generateTokens")
 
 // index.js de 3.no ile birlikte
 router.get("/test", (req,res) => {
@@ -44,20 +45,9 @@ router.post("/signup", async(req,res) => {
         console.log("savedUser: "+savedUser)
         res.status(201).json(savedUser)
 
-        // + 10
-        const JWT = require("jsonwebtoken")
-        const accessToken = await JWT.sign(
-            { id: savedUser._id, }, //id: => savedUser or newUser or no need here 
-            process.env.JWT_ACCESS_TOKEN_KEY, 
-            { expiresIn: "30s" }) // token valid for 30s
-
-        const refreshToken = await JWT.sign(
-            { id: savedUser._id,}, //id: => savedUser or newUser or no need here 
-            process.env.JWT_REFRESH_TOKEN_KEY, 
-            { expiresIn: "3d" }) // token valid for 3days
-
-        console.log("accessToken: ",accessToken)
-        console.log("refreshToken: ",refreshToken)
+        const { accessToken, refreshToken } = generateToken(savedUser._id)
+        
+        return res.status(200).json({ accessToken,refreshToken })
 
     } catch(err){
         console.log("err: "+err)
@@ -96,24 +86,9 @@ router.post("/login", async (req,res) => {
     console.log("OriginalPassword: "+OriginalPassword)
     //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
 
-    //accessToken her login veya singup yapıldığında üretilir.
-    //refreshToken ise accessToken ın süresi bitiğinde yeni bir accessToken üretmeye yarar.
-    //refreshToken ın süresi bittiğinde ise kullanıcıdan tekrar sisteme girişi istenir.
-    const JWT = require("jsonwebtoken")
-    const accessToken = await JWT.sign(
-        { id: user._id, }, 
-        process.env.JWT_ACCESS_TOKEN_KEY, 
-        { expiresIn: "30s" }) 
+    const { accessToken, refreshToken } = generateToken(savedUser._id)
 
-    const refreshToken = await JWT.sign(
-        { id: user._id,}, 
-        process.env.JWT_REFRESH_TOKEN_KEY, 
-        { expiresIn: "3d" }) 
-
-    console.log("accessToken: ",accessToken)
-    console.log("refreshToken: ",refreshToken)
-
-    return res.status(200).json({accessToken,refreshToken} )
+    return res.status(200).json({ accessToken,refreshToken })
     
     
 })
