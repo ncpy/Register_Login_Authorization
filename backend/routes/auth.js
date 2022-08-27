@@ -46,12 +46,18 @@ router.post("/signup", async(req,res) => {
 
         // + 10
         const JWT = require("jsonwebtoken")
-        const token = await JWT.sign(
-            { id: savedUser._id, email }, //id: => savedUser or newUser or no need here 
-            process.env.JWT_PRIVATEKEY, 
+        const accessToken = await JWT.sign(
+            { id: savedUser._id, }, //id: => savedUser or newUser or no need here 
+            process.env.JWT_ACCESS_TOKEN_KEY, 
+            { expiresIn: "30s" }) // token valid for 30s
+
+        const refreshToken = await JWT.sign(
+            { id: savedUser._id,}, //id: => savedUser or newUser or no need here 
+            process.env.JWT_REFRESH_TOKEN_KEY, 
             { expiresIn: "3d" }) // token valid for 3days
 
-        console.log("token: "+token)
+        console.log("accessToken: ",accessToken)
+        console.log("refreshToken: ",refreshToken)
 
     } catch(err){
         console.log("err: "+err)
@@ -90,14 +96,24 @@ router.post("/login", async (req,res) => {
     console.log("OriginalPassword: "+OriginalPassword)
     //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
 
+    //accessToken her login veya singup yapıldığında üretilir.
+    //refreshToken ise accessToken ın süresi bitiğinde yeni bir accessToken üretmeye yarar.
+    //refreshToken ın süresi bittiğinde ise kullanıcıdan tekrar sisteme girişi istenir.
     const JWT = require("jsonwebtoken")
-    const token = await JWT.sign(
-        { id: user._id }, 
-        process.env.JWT_PRIVATEKEY, 
-        { expiresIn: "3d" })
+    const accessToken = await JWT.sign(
+        { id: user._id, }, 
+        process.env.JWT_ACCESS_TOKEN_KEY, 
+        { expiresIn: "30s" }) 
 
-    console.log("token: "+token)
-    return res.status(200).json(token)
+    const refreshToken = await JWT.sign(
+        { id: user._id,}, 
+        process.env.JWT_REFRESH_TOKEN_KEY, 
+        { expiresIn: "3d" }) 
+
+    console.log("accessToken: ",accessToken)
+    console.log("refreshToken: ",refreshToken)
+
+    return res.status(200).json({accessToken,refreshToken} )
     
     
 })
