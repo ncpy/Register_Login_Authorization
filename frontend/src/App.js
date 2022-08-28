@@ -1,8 +1,16 @@
-import Login from "./components/Login";
 import { Routes, Route, Navigate } from "react-router-dom"
-import Layout from "./components/Layout";
-import Home from "./components/Home";
+import Login from "./components/Login";
 import Register from "./components/Register";
+import Layout from "./components/Layout";
+import LinkPage from "./components/LinkPage";
+import Unauthorized from "./components/Unauthorized";
+
+import Home from "./components/Home";
+import Editor from "./components/Editor";
+import Admin from "./components/Admin";
+import Lounge from "./components/Lounge";
+import Missing from "./components/Missing";
+
 
 
 function App() {
@@ -10,9 +18,22 @@ function App() {
     <div className="App">
       <Routes>
         <Route path="/" element={ <Layout /> } >
+          
+          {/* açık erişim */}
           <Route path="login" element={ <Login /> } />
           <Route path="signup" element={ <Register /> } />
+          <Route path="linkpage" element={<LinkPage />} />
+          <Route path="unauthorized" element={<Unauthorized />} />
+          
+          {/* özel izinli olmalı */}
           <Route path="/" element={ <Home /> } />
+          <Route path="editor" element={<Editor />} />
+          <Route path="admin" element={<Admin />} />
+          <Route path="lounge" element={<Lounge />} />
+          
+          {/* catch all */}
+          <Route path="*" element={<Missing />} />
+
         </Route>
       </Routes>
     </div>
