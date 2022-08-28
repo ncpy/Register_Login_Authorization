@@ -11,15 +11,13 @@ const RequireAuth = ({ allowedRoles }) => {
         ? jwt_decode(accessToken)
         : undefined
 
+    // eğer token ın süresi bittiyse manual olarak ..
+    // .. roles ve acc.tkn sıfırla
     let roles = []
-    if (decoded.exp * 1000 < new Date().getTime()) {
-        //const data = await refreshToken();
-        //config.headers["authorization"] = "Bearer " + data.accessToken;
-        //console.log("new token generated :)
-
+    if (decoded?.exp * 1000 < new Date().getTime()) {
         roles = []
         accessToken = "" //belki çok amatörce oldu bu çünkü accesstoken ı jwt ile yok etmek en mantıklısı..
-        console.log("access token expires ;(")
+        console.log("access token expired .. ")
     } else {
         roles = decoded?.roles || []
         console.log("allowedRoles: ", allowedRoles)
