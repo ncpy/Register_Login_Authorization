@@ -13,6 +13,12 @@ app.get("/", (req,res) => {
     res.send("We did it")
 })
 
+app.use(express.json())
+app.post("/", async (req,res) => {
+    console.log(req)
+    res.send(req.body)
+})
+
 // later cookie & csrf(not now)
 const cookieParser = require("cookie-parser")
 app.use(cookieParser())

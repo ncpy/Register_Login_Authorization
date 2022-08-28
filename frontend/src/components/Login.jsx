@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
+import axios from  "axios"
+
 
 const Login = () => {
     const userRef = useRef(); // imlecin oto odaklanması için
@@ -19,7 +21,17 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("Giriş Yap")
+        const myaxios = await axios.create({ baseURL: "http://localhost:5000" })
+        
+        //backend url sine bağlanarak res.send olarak gönserilen veriyi alma
+        const veri_al = await myaxios.get('/')
+        console.log("res: ",veri_al.data)
+
+        //backend url sine veri gönderme
+        const veri_gonder = await myaxios.post('/', { adı:"ali" })
+        console.log("res: ",veri_gonder.data)
+
+
     }
 
     return (
