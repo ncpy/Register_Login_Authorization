@@ -1,4 +1,5 @@
 const router = require("express").Router()
+const checkAuth = require("../middleware/checkAuth")
 
 publicPosts = [
     {title:"Free Post 1", desc:"Detaylar"},
@@ -20,15 +21,7 @@ router.get("/public", (req, res) => {
 
 // özel erişimli postlar
 // http://localhost:5000/posts/private
-router.get("/private", (req,res,next) => {
-    const user = true
-    const user2 = false
-    if(user2)
-        next()
-    else {
-        return res.status(400).json("Erişim Reddedildi")
-    }
-}, (req, res) => {
+router.get("/private", checkAuth, (req,res) => {
     res.json(paidPosts)
 })
 
