@@ -16,14 +16,14 @@ router.get("/", async (req, res) => {
     verifyRefreshToken(refreshToken)       //? req.body.refreshToken
     .then(({tokenDetails}) => {
         const accessToken = JWT.sign(
-            { _id: tokenDetails._id, },
+            { _id: tokenDetails._id, roles: tokenDetails.roles },
             process.env.JWT_ACCESS_TOKEN_KEY,
-            { expiresIn: "30s" }
+            { expiresIn: process.env.JWT_ACCESS_EXP }
         )
 
         res.status(200).json({
             error: false, 
-            accessToken, 
+            accessToken,
             message:"Access token oluşturuldu"
         })
     })

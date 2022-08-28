@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
         username: {type: String},
         email: {type: String, required: true},
         password: {type: String, required: true},
+        roles: {type: Array},
     },
     {timestamps: true} //_id createdAt updatedAt ekleniyor
 )
@@ -30,11 +31,12 @@ const validate = (data) => {
             //  "Email" length must be at least 5 characters long
         password: passwordComplexity()
             .required()
-            .label("Password")
+            .label("Password"),
             //  "Password" should be at least 8 characters long.
             //  "Password" should contain at least 1 lower-cased letter.
             //  "Password" should contain at least 1 upper-cased letter.
             //  "Password" should contain at least 1 symbol.
+        roles: Joi.array()
     })
     return schema.validate(data)
 }

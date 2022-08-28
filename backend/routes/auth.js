@@ -17,7 +17,7 @@ router.post("/signup", async(req,res) => {
         console.log(error)
         return res.status(422).send(error.details[0].message);
     } //hata yok yani validation PASSed
-    
+
     // kullanıcı adı alınmış mı
     const userN = await User.findOne({ username:req.body.username })
     if(userN) {
@@ -34,23 +34,35 @@ router.post("/signup", async(req,res) => {
     
     //yeni user yani DB ye kaydet
     try {
-        const { password, email } = value // const { password, email } = validate(req.body).value
+        // kullanıcılar için default role = USER:2001
+        // aslında frontend tarafında kullanıcıdan hangi rolü olması istenmeyecek..
+        //..eğer admin gerekirse DB den güncellenebilir
+        // aşağıdaki 2 satır kod belki postman tarafında kolaylık için gerekir
+        // production modunda silinebilir.
+        // .env den integer değer için önüne + koyulabilir
+        let roles = req.body.roles || []
+        roles = roles?.includes(+process.env.ROLES_USER) 
+                  ? roles 
+                  : roles.concat(+process.env.ROLES_USER)
+        
         const newUser = new User({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             username: req.body.username,
             email: req.body.email,
-            password: CryptoJS.AES.encrypt(req.body.password, process.env.PASSPHRASE_SECRET).toString()
+            password: CryptoJS.AES.encrypt(req.body.password, process.env.PASSPHRASE_SECRET).toString(),
+            roles: roles   //2001  prod. modunda sadece USER yeterli.
         })
         const savedUser = await newUser.save()
-        console.log("savedUser: "+savedUser)
-        res.status(201).json(savedUser)
+        console.log("savedUser: " + savedUser)
 
         //access ve refreshtoken oluşturmak için
-        const { accessToken, refreshToken } = generateToken(savedUser._id)
+        //? await çok önemli.. generateToken fonk. async ile çalıştığı için
+        const { accessToken, refreshToken } = await generateToken(savedUser._id, savedUser.roles)
         
         //refresh token ı çerezlere(cookie) gönder
-        generateCookies(res, refreshToken) 
+        const cerez = generateCookies(res, refreshToken) 
+        console.log("çerez: ",cerez?.req?.cookies)
         
         return res.status(200).json({ accessToken,refreshToken })
 
@@ -58,8 +70,6 @@ router.post("/signup", async(req,res) => {
         console.log("err: "+err)
         res.status(500).json(err)
     }
-
-        //res.send("auth works") //dikkat et 1 req için 1 res göndrebilirsin
     
 })
 
@@ -92,21 +102,22 @@ router.post("/login", async (req,res) => {
     //res.status(200).send("LOGGED IN.: \n\n"+user) //yoruma al aşağıdaki res ile çakışmasın!
 
     //access ve refreshtoken oluşturmak için
-    const { accessToken, refreshToken } = await generateToken(user._id)
+    const { accessToken, refreshToken } = await generateToken(user._id, user.roles)
 
     //refresh token ı çerezlere(cookie) gönder
     const cerez = generateCookies(res, refreshToken)
     console.log("çerez: ",cerez.req.cookies)
 
     
-
+    
     return res.status(200).json({ //to client
         _id: user._id,
         username: user.username,
         email: user.email,
+        roles: user.roles,
         accessToken: accessToken,
         refreshToken: refreshToken,
-    }) 
+    })
 
 })
 

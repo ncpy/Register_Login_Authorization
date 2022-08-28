@@ -1,5 +1,6 @@
 const router = require("express").Router()
 const checkAuth = require("../middleware/checkAuth")
+const roleCheck = require("../middleware/roleCheck")
 
 publicPosts = [
     {title:"Free Post 1", desc:"Detaylar"},
@@ -21,8 +22,13 @@ router.get("/public", (req, res) => {
 
 // özel erişimli postlar
 // http://localhost:5000/posts/private
-router.get("/private", checkAuth, (req,res) => {
+/*router.get("/private", checkAuth, (req,res) => {
+    res.json(paidPosts)
+})*/
+
+// role bazlı yetkilendirme 2
+router.get("/private", checkAuth, roleCheck([1001]), (req,res) => {
     res.json(paidPosts)
 })
 
-module.exports = router
+module.exports = router;
