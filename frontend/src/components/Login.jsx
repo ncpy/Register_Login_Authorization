@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import myaxios from '../api/myaxios';
+import { loginFailure, loginStart, loginSuccess } from '../redux/userRedux';
 
 
 const Login = () => {
@@ -17,6 +19,8 @@ const Login = () => {
     console.log("location: ",location)
     console.log("from: ",from)
 
+    const dispatch = useDispatch()
+
 
     useEffect(() => {
         userRef.current?.focus();
@@ -29,6 +33,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        dispatch(loginStart())
         await myaxios.post('/auth/login', 
             {
                 "email": email,
@@ -41,12 +46,16 @@ const Login = () => {
             console.log("res data accesstoken: ", response?.data?.accessToken)
             console.log("res data roles: ", response?.data?.roles)
 
+            dispatch(loginSuccess(response.data))
+
             navigate(from, { replace:true })
             console.log("first: ",from)
             console.log("giriş yapıldı")
 
         }).catch(err => {
             console.log(err?.response?.data?.toString() || err?.toString())
+            dispatch(loginFailure())
+
         })
 
     }

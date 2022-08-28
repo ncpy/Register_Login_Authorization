@@ -7,7 +7,7 @@ const Admin = () => {
             <br />
             <p>Bu sayfaya erişebilirsin</p>
             <div className="flexGrow">
-                <Link to="/">Home</Link>
+                <Link to="/">Ana Sayfa</Link>
             </div>
         </section>
     )

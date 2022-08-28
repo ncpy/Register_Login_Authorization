@@ -1,6 +1,10 @@
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 const Home = () => {
+
+    const myuser = useSelector(state => state.user.currentUser)
+    console.log("myuser: ", myuser)
 
     const signout = async () => {
         

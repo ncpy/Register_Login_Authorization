@@ -5,9 +5,9 @@ const Lounge = () => {
         <section>
             <h1>The Lounge</h1>
             <br />
-            <p>Admin ve Editörler bu sayfaya erişebilir</p>
+            <p>Admin veya Editörler bu sayfaya erişebilir</p>
             <div className="flexGrow">
-                <Link to="/">Home</Link>
+                <Link to="/">Ana Sayfa</Link>
             </div>
         </section>
     )

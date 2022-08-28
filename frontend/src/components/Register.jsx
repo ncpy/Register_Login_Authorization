@@ -54,7 +54,7 @@ const Register = () => {
                     "username": name,
                     "email": email,
                     "password": pwd,
-                    "roles": [1001, 2001]
+                    "roles": [2001]
                     //"roles": [{"role":"Editor", "değer": 1984}, {"role":"User", "değer":2001}]
 
                     //burada roles: (2) [2001, 1984] olacak şekilde yani DB de sadece rakalmalar bulusnun User admin olayı kodlama yaparken kullan o da const olarak
