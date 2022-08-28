@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import axios from  "axios"
+import myaxios from '../api/myaxios';
 
 
 const Login = () => {
@@ -21,16 +21,12 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const myaxios = await axios.create({ baseURL: "http://localhost:5000" })
-        
-        //backend url sine bağlanarak res.send olarak gönserilen veriyi alma
-        const veri_al = await myaxios.get('/')
-        console.log("res: ",veri_al.data)
-
-        //backend url sine veri gönderme
-        const veri_gonder = await myaxios.post('/', { adı:"ali" })
-        console.log("res: ",veri_gonder.data)
-
+        //daha önce giriş yapılmış email ve şifre
+        await myaxios.post('/auth/login', { 
+            "email": email,
+            "password": pwd
+        }).then(response => console.log("başarılı: ",response?.data))
+          .catch(err => console.log("hata: ", err.config.data))
 
     }
 
