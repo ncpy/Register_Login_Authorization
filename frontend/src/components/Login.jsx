@@ -82,7 +82,7 @@ const Login = () => {
                 Hesabın Yok Mu?<br />
                 <span className="line">
                     
-                    <a href="#">Kayıt Ol</a>
+                    <a href="/signup">Kayıt Ol</a>
                 </span>
             </p>
         </section>
