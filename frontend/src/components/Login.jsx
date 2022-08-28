@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import myaxios from '../api/myaxios';
 
 
@@ -9,6 +10,13 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [pwd, setPwd] = useState('');
     const [errMsg, setErrMsg] = useState('');
+
+    const navigate = useNavigate()
+    const location = useLocation()
+    const from = location.state?.from?.pathname || "/"
+    console.log("location: ",location)
+    console.log("from: ",from)
+
 
     useEffect(() => {
         userRef.current?.focus();
@@ -21,12 +29,25 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        //daha önce giriş yapılmış email ve şifre
-        await myaxios.post('/auth/login', { 
-            "email": email,
-            "password": pwd
-        }).then(response => console.log("başarılı: ",response?.data))
-          .catch(err => console.log("hata: ", err.config.data))
+        await myaxios.post('/auth/login', 
+            {
+                "email": email,
+                "password": pwd
+            },
+            {   headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            }
+        ).then(response => {   //success
+            console.log("res data accesstoken: ", response?.data?.accessToken)
+            console.log("res data roles: ", response?.data?.roles)
+
+            navigate(from, { replace:true })
+            console.log("first: ",from)
+            console.log("giriş yapıldı")
+
+        }).catch(err => {
+            console.log(err?.response?.data?.toString() || err?.toString())
+        })
 
     }
 
