@@ -21,6 +21,12 @@ const userSlice = createSlice({
             state.error = true
         },
 
+        //serte
+        updateSuccess: (state, action) => {
+            state.isFetching = false
+            state.currentUser.accessToken = action.payload
+        },
+
         //logout start,success,failure
         logoutStart: (state) => {
             state.isFetching = true
@@ -52,7 +58,8 @@ const userSlice = createSlice({
 export const { 
     loginStart, loginSuccess, loginFailure, 
     logoutStart, logoutSuccess, logoutFailure,
-    registerStart, registerSuccess, registerFailure
+    registerStart, registerSuccess, registerFailure,
+    updateSuccess
 } = userSlice.actions
 
 export default userSlice.reducer

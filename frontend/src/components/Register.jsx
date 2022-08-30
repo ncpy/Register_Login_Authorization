@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import axios from '../api/myaxios';  //1
+import { axios1 } from '../api/myaxios';  //1
 import Joi from "joi";
 import passwordComplexity from "joi-password-complexity"
 
@@ -49,7 +49,7 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        await axios.post('/auth/signup', 
+        await axios1.post('/auth/signup', 
                 {
                     "username": name,
                     "email": email,

@@ -7,24 +7,10 @@ const RequireAuth = ({ allowedRoles }) => {
     const location = useLocation();
 
     let accessToken = useSelector(state => state.user?.currentUser?.accessToken)
-    const decoded = accessToken
-        ? jwt_decode(accessToken)
-        : undefined
-
-    // eğer token ın süresi bittiyse manual olarak ..
-    // .. roles ve acc.tkn sıfırla
-    let roles = []
-    if (decoded?.exp * 1000 < new Date().getTime()) {
-        roles = []
-        accessToken = "" //belki çok amatörce oldu bu çünkü accesstoken ı jwt ile yok etmek en mantıklısı..
-        console.log("access token expired .. ")
-    } else {
-        roles = decoded?.roles || []
-        console.log("allowedRoles: ", allowedRoles)
-        console.log("roles in req.auth.js: ", roles)
-    }
-
-
+    const decoded = accessToken ? jwt_decode(accessToken) : undefined
+    
+    const roles = decoded?.roles || []
+         
     return (
         roles?.find(role => allowedRoles?.includes(role))
             ? <Outlet />
