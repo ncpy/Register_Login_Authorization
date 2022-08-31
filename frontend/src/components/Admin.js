@@ -8,14 +8,17 @@ const Admin = () => {
     const axiosPrvt = useAxiosPrivate()
 
     useEffect(() => {
-        (async () => {
+
+        const goPrivate = async () => {
             const data = await axiosPrvt.get("/posts/private")
             //console.log("data:    ", data)
 
-        const titles = data.data?.map(x => x.title)
-        //console.log("titles: ",titles)
-        setDetay(titles)
-        })()
+            const titles = data.data?.map(x => x.title)
+            //console.log("titles: ",titles)
+            setDetay(titles)
+        }
+        goPrivate()
+        
     }, [axiosPrvt])
 
     return (

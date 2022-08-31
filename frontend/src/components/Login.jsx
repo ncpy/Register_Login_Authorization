@@ -55,7 +55,6 @@ const Login = () => {
         }).catch(err => {
             console.log(err?.response?.data?.toString() || err?.toString())
             dispatch(loginFailure())
-
         })
 
     }

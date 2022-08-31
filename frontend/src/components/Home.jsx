@@ -1,13 +1,26 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { axios1 } from "../api/myaxios";
+import { logoutFailure, logoutStart, logoutSuccess } from "../redux/userRedux";
 
 const Home = () => {
 
     const myuser = useSelector(state => state.user.currentUser)
     console.log("myuser: ", myuser)
-    
+    const dispatch = useDispatch()
+
     const signout = async () => {
-        
+
+        dispatch(logoutStart())
+        await axios1.post("/auth/logout")
+            .then(response => {
+                dispatch(logoutSuccess())
+                console.log("logged out")
+            })
+            .catch(err => {
+                dispatch(logoutFailure())
+                console.log(err)
+            })
     }
 
     return (

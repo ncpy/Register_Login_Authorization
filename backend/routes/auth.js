@@ -1,6 +1,9 @@
 const router = require("express").Router()
 const generateToken = require("../utils/generateTokens")
 const generateCookies = require("../utils/generateCookies");
+const { PasswordReset } = require("../models/PasswordReset")
+const nodemailer = require("nodemailer")
+const { v4: uuidv4 } = require("uuid")
 
 // index.js de 3.no ile birlikte
 router.get("/test", (req,res) => {
@@ -133,6 +136,107 @@ router.post("/logout", async (req,res) => {
 
     console.log("Logged OUT")
     res.status(200).json("LOGGED OUT")
+
+})
+
+router.post("/requestPsswrdReset", async (req,res) => {
+    const { email, redirectUrl } = req.body
+
+    const user = await User.find({ email })
+    if (!user) {
+        console.log("ilgili mailin hesabı bulunamadı")
+        return res.json({message: "ilgili mailin hesabı bulunamadı"})
+    } 
+    
+    /*if (!user[0].verified...)
+        return res.json({ message: "Email daha doğrulanamadı. Maili kontrol ediniz" })*/
+
+
+    const sendResetEmail = ( user, redirectUrl, res ) => {
+        const resetString = uuidv4() + user[0]._id
+
+        //console.log(user[0]._id)
+        //console.log(user[0].email)
+
+        // tüm pswd reset kayıtlarını sil
+        PasswordReset.deleteMany({ userId: user[0]._id })
+            .then(result => {   // Reset records deleted successfully, now send the email
+                
+                //mail options
+                const mailOptions = {
+                    from: process.env.AUTH_EMAIL,
+                    to: user[0].email,
+                    subject: "Şifre Sıfırlama",
+                    html: `<p>Duyduk ki şifrenizi kaybetmişsiniz.</p><p>Endişelenmeyin ama aşağıdaki linki kullanabilirsiniz</p><p>Bu link <b>60 dk sonra geçersiz olacak</b><p><p>İlerlemek için <a href=${
+                        redirectUrl + "/" + user[0]._id + "/" + resetString
+                    }>buraya</a> tıklayın</p>`
+                }
+
+                //hash reset string
+                const hashedResetString = CryptoJS.AES.encrypt(resetString, process.env.PASSPHRASE_SECRET).toString()
+                if (!hashedResetString) {
+                    return res.json({message: "error while hashing.."}) 
+                }
+
+                const newPasswordReset = new PasswordReset({
+                    userId: user[0]._id,
+                    resetString: hashedResetString,
+                    createdAt: Date.now(),
+                    expiresAt: Date.now() + 3600000
+                })
+
+                newPasswordReset.save()
+                    .then(() => {
+                        let transporter = nodemailer.createTransport({
+                            service: 'Gmail',   
+                            auth: {
+                                user: process.env.AUTH_EMAIL,
+                                pass: "awqymkvkagtimfnc", //process.env.AUTH_PASS
+                            },
+                            tls: {
+                                rejectUnauthorized: false
+                            }
+                        })
+
+                        transporter.verify((error, success) => {
+                            if (error)
+                                console.log(error)
+                            else {
+                                console.log("Ready for message")
+                                console.log(success)
+                            }
+                        })
+
+                        transporter.sendMail(mailOptions)
+                            .then(() => {
+                                res.json({
+                                    status: "PENDING",
+                                    message: "şifre sıfırlama emaili gönderildi."
+                                })
+                            })
+                            .catch(err => {
+                                console.log(err)
+                                return res.json({message: "Şifre sıfırlama email başarısız"})
+
+                            })
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        return res.json({message: "Şifre sıfırlama kaydedilemedi"})
+                    })
+
+
+
+
+            })
+            .catch(err => {
+                console.log(err)
+                return res.json({message: "Şifre sıfırlama geçmişi başarısız"})
+            })
+    }
+
+    //console.log("user::: ",user)
+    sendResetEmail(user, redirectUrl, res)
 
 })
 
