@@ -240,5 +240,73 @@ router.post("/requestPsswrdReset", async (req,res) => {
 
 })
 
+//şifreyi sıfırlama
+router.post("/resetPassword", async (req,res) => {
+    let { userId, resetString, newPassword } = req.body
+
+    PasswordReset.find({ userId })
+        .then(result => {
+            if (result.length > 0){
+                const { expiresAt } = result[0]
+                
+                if (expiresAt < Date.now()) //sıfırlama tokenının zamanı geçtiyse
+                    PasswordReset.deleteOne({ userId })
+                        .then(() => {   //sıfırlama kaydı silindi
+                            res.json({message: "Şifre sıfırlama linki geçersiz"})
+                        })
+                        .catch(err => { //kayıt silme başarısız
+                            console.log(err)
+                            res.json({message: "Şifre sıfırlama isteği kaydı silinmesi başarısız"})
+                        })
+                else { //geçerli sıfırlama kaydı mevcut
+                    console.log("DEVAM ", result[0])    
+
+                                        
+                    const originalPassword = CryptoJS.AES.decrypt(result[0].resetString, process.env.PASSPHRASE_SECRET).toString(CryptoJS.enc.Utf8)                    
+                    
+                    console.log("DEVAM ", originalPassword)    
+                    
+                    if (originalPassword === resetString ) { // eşleşme başarılı
+                        const hashednewPasswords = CryptoJS.AES.encrypt(newPassword, process.env.PASSPHRASE_SECRET).toString() //yeni parolayı kriptola..
+                        if (!hashednewPasswords) {
+                            return res.json({message: "error while hashing.."}) 
+                        }
+
+                        //? id mi email mi 
+                        User.updateOne({ _id: userId }, { password: hashednewPasswords })
+                            .then(() => {   
+                                // update başarılı. 
+                                
+                                //Şimdi sıfırlama kaydını sil
+                                PasswordReset.deleteOne({ userId })
+                                    .then(() => {   //kullanıcı kaydı ve sıfırlama kaydı silindi
+                                        return res.json({message: "BAŞARILI sıfırlama kaydı silindi"}) 
+                                    })
+                                    .catch(err => {
+                                        console.log(err)
+                                        return res.json({message: "sıfırlama kaydını silinirken hata"}) 
+                                    })
+
+                            }) 
+                            .catch(err => {
+                                console.log(err)
+                                return res.json({message: "kullanıcı parola güncelleme başarısız"}) 
+                            })
+
+                    } else
+                        res.json({message: "Eşleşme başarısız"})
+                        
+                }
+            } else  
+                res.json({message: "Şifre sıfırlama isteği bulunamadı"})
+
+        })
+        .catch(err => {
+            console.log(err)
+            res.json({message: "Mevcut şifreyi sıfırlama başarısız"})
+        })
+
+})
+
 
 module.exports = router

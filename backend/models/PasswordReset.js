@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const passwordResetSchema = new mongoose.Schema(
     {
         userId: {type: String},
-        uniqueString: {type: String},
+        resetString: {type: String},
         createdAt: {type: Date},
         expiresAt: {type: Date}
     },
