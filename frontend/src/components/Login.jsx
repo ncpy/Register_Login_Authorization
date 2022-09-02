@@ -87,10 +87,15 @@ const Login = () => {
                 
             </form>
             <p>
-                Hesabın Yok Mu?<br />
+                Hesabın Yok Mu? 
                 <span className="line">
-                    
-                    <a href="/signup">Kayıt Ol</a>
+                    <a href="/signup" > Kayıt Ol</a>
+                </span>
+            </p>
+            <p>
+                Şifreni mi Unuttun?
+                <span className="line">
+                    <a href="/forgetpassword" > Hatırla</a>
                 </span>
             </p>
         </section>

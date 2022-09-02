@@ -114,7 +114,13 @@ li {
 }
 
 .line {
-    display: inline-block;
+    text-align: right;
+    float: right; 
+}
+
+a:hover {
+    color: firebrick;
+    
 }
 
 .flexGrow {

@@ -145,7 +145,7 @@ router.post("/requestPsswrdReset", async (req,res) => {
     const user = await User.find({ email })
     if (!user) {
         console.log("ilgili mailin hesabı bulunamadı")
-        return res.json({message: "ilgili mailin hesabı bulunamadı"})
+        return res.status(400).send("ilgili mailin hesabı bulunamadı")
     } 
     
     /*if (!user[0].verified...)
@@ -175,14 +175,14 @@ router.post("/requestPsswrdReset", async (req,res) => {
                 //hash reset string
                 const hashedResetString = CryptoJS.AES.encrypt(resetString, process.env.PASSPHRASE_SECRET).toString()
                 if (!hashedResetString) {
-                    return res.json({message: "error while hashing.."}) 
+                    return res.status(400).send("error while hashing..") 
                 }
 
                 const newPasswordReset = new PasswordReset({
                     userId: user[0]._id,
                     resetString: hashedResetString,
                     createdAt: Date.now(),
-                    expiresAt: Date.now() + 3600000
+                    expiresAt: Date.now() + parseInt(process.env.EMAIL_VALID_EXP)
                 })
 
                 newPasswordReset.save()
@@ -209,20 +209,17 @@ router.post("/requestPsswrdReset", async (req,res) => {
 
                         transporter.sendMail(mailOptions)
                             .then(() => {
-                                res.json({
-                                    status: "PENDING",
-                                    message: "şifre sıfırlama emaili gönderildi."
-                                })
+                                res.status(200).send("şifre sıfırlama emaili gönderildi.")
                             })
                             .catch(err => {
                                 console.log(err)
-                                return res.json({message: "Şifre sıfırlama email başarısız"})
+                                return res.status(400).send("Şifre sıfırlama email başarısız")
 
                             })
                     })
                     .catch(err => {
                         console.log(err)
-                        return res.json({message: "Şifre sıfırlama kaydedilemedi"})
+                        return res.status(400).send("Şifre sıfırlama kaydedilemedi")
                     })
 
 
@@ -231,7 +228,7 @@ router.post("/requestPsswrdReset", async (req,res) => {
             })
             .catch(err => {
                 console.log(err)
-                return res.json({message: "Şifre sıfırlama geçmişi başarısız"})
+                return res.status(400).send("Şifre sıfırlama geçmişi başarısız")
             })
     }
 
@@ -252,11 +249,11 @@ router.post("/resetPassword", async (req,res) => {
                 if (expiresAt < Date.now()) //sıfırlama tokenının zamanı geçtiyse
                     PasswordReset.deleteOne({ userId })
                         .then(() => {   //sıfırlama kaydı silindi
-                            res.json({message: "Şifre sıfırlama linki geçersiz"})
+                            return res.status(400).send("Şifre sıfırlama linki geçersiz")
                         })
                         .catch(err => { //kayıt silme başarısız
                             console.log(err)
-                            res.json({message: "Şifre sıfırlama isteği kaydı silinmesi başarısız"})
+                            return res.status(400).send("Şifre sıfırlama isteği kaydı silinmesi başarısız")
                         })
                 else { //geçerli sıfırlama kaydı mevcut
                     console.log("DEVAM ", result[0])    
@@ -269,7 +266,7 @@ router.post("/resetPassword", async (req,res) => {
                     if (originalPassword === resetString ) { // eşleşme başarılı
                         const hashednewPasswords = CryptoJS.AES.encrypt(newPassword, process.env.PASSPHRASE_SECRET).toString() //yeni parolayı kriptola..
                         if (!hashednewPasswords) {
-                            return res.json({message: "error while hashing.."}) 
+                            return res.status(400).send("error while hashing..") 
                         }
 
                         //? id mi email mi 
@@ -280,30 +277,30 @@ router.post("/resetPassword", async (req,res) => {
                                 //Şimdi sıfırlama kaydını sil
                                 PasswordReset.deleteOne({ userId })
                                     .then(() => {   //kullanıcı kaydı ve sıfırlama kaydı silindi
-                                        return res.json({message: "BAŞARILI sıfırlama kaydı silindi"}) 
+                                        return res.status(200).send("BAŞARILI sıfırlama kaydı silindi") 
                                     })
                                     .catch(err => {
                                         console.log(err)
-                                        return res.json({message: "sıfırlama kaydını silinirken hata"}) 
+                                        return res.status(400).send("sıfırlama kaydını silinirken hata") 
                                     })
 
                             }) 
                             .catch(err => {
                                 console.log(err)
-                                return res.json({message: "kullanıcı parola güncelleme başarısız"}) 
+                                return res.status(400).send("kullanıcı parola güncelleme başarısız") 
                             })
 
                     } else
-                        res.json({message: "Eşleşme başarısız"})
+                        return res.status(400).send("Eşleşme başarısız")
                         
                 }
             } else  
-                res.json({message: "Şifre sıfırlama isteği bulunamadı"})
+            return res.status(400).send("Şifre sıfırlama isteği bulunamadı")
 
         })
         .catch(err => {
             console.log(err)
-            res.json({message: "Mevcut şifreyi sıfırlama başarısız"})
+            return res.status(400).send("Mevcut şifreyi sıfırlama başarısız")
         })
 
 })

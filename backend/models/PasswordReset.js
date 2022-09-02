@@ -7,7 +7,7 @@ const passwordResetSchema = new mongoose.Schema(
         createdAt: {type: Date},
         expiresAt: {type: Date}
     },
-    {timestamps: true} //_id createdAt updatedAt ekleniyor
+    {timestamps: true} //_id createdAt updatedAt ekleniyor //? eklenmesine gerk olmayabilir
 )
 
 const PasswordReset = mongoose.model("passwordReset", passwordResetSchema) // create users (yes with -s in mongoDB)

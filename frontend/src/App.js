@@ -11,6 +11,8 @@ import Admin from "./components/Admin";
 import Lounge from "./components/Lounge";
 import Missing from "./components/Missing";
 import RequireAuth from "./components/RequireAuth";
+import ForgetPassword from "./components/ForgetPassword";
+import ResetPassword from "./components/ResetPassword";
 
 const ROLES = {
   "User": 2001,
@@ -29,6 +31,8 @@ function App() {
           <Route path="signup" element={ <Register /> } />
           <Route path="linkpage" element={<LinkPage />} />
           <Route path="unauthorized" element={<Unauthorized />} />
+          <Route path="forgetpassword" element={<ForgetPassword />} />
+          <Route path="resetpassword/:userId/:resetString" element={<ResetPassword />} />
           
           {/* özel izinli olmalı */}
           <Route element={<RequireAuth allowedRoles={[ROLES.User]} />}>
