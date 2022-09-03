@@ -119,7 +119,7 @@ const Register = () => {
             {success 
                 ?   
                     <section>
-                        <h1>Başarılı!</h1>
+                        <h1>Lütfen mailinizi doğrulayınız. Sonra Giriş Yapınız!</h1>
                         <p><a href="/login">Giriş Yap</a></p>
                     </section>
                 :   

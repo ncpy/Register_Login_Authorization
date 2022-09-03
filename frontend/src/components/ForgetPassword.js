@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { axios1 } from '../api/myaxios';
 
 
 const ForgetPassword = () => {
+    const errRef = useRef();
+    const [errMsg, setErrMsg] = useState('');
 
     const [email, setEmail] = useState("")
     const [success, setSuccess] = useState(false);
 
+    useEffect(() => {
+        setErrMsg('');
+    }, [ email ])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,6 +32,8 @@ const ForgetPassword = () => {
 
         }).catch(err => {
             console.log(err?.response?.data?.toString() || err?.toString())
+            setErrMsg(err?.response?.data?.toString() || err?.toString())
+            errRef.current.focus();
         })
 
     }
@@ -40,6 +47,8 @@ const ForgetPassword = () => {
                     </section>
                 :
                     <section>
+                        <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
+
                         <h1>Şifre Sıfırlama</h1>
                         <form onSubmit={handleSubmit}>
                             <label htmlFor="username">Email:</label>

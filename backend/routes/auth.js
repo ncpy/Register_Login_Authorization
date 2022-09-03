@@ -2,18 +2,18 @@ const router = require("express").Router()
 const generateToken = require("../utils/generateTokens")
 const generateCookies = require("../utils/generateCookies");
 const { PasswordReset } = require("../models/PasswordReset")
-const nodemailer = require("nodemailer")
 const { v4: uuidv4 } = require("uuid")
+const { User, validate } = require("../models/User");
+const CryptoJS = require("crypto-js");
+const { UserVerification } = require("../models/UserVerification");
+const mailTransporter = require("../utils/mailTransporter");
 
 // index.js de 3.no ile birlikte
 router.get("/test", (req,res) => {
     res.send("auth works")
 })
 
-// 6
-//postman de {"email":"ali@g.com", "password": "123"} gibi dene
-const { User, validate } = require("../models/User");
-const CryptoJS = require("crypto-js");
+//kayıt ol
 router.post("/signup", async(req,res) => {
     const { value, error } = validate(req.body);
     if (error) { //validation error
@@ -54,10 +54,13 @@ router.post("/signup", async(req,res) => {
             username: req.body.username,
             email: req.body.email,
             password: CryptoJS.AES.encrypt(req.body.password, process.env.PASSPHRASE_SECRET).toString(),
-            roles: roles   //2001  prod. modunda sadece USER yeterli.
+            roles: roles,   //2001  prod. modunda sadece USER yeterli.
+            verified: false
         })
         const savedUser = await newUser.save()
         console.log("savedUser: " + savedUser)
+
+        sendVerificationEmail(savedUser, res)
 
         //access ve refreshtoken oluşturmak için
         //? await çok önemli.. generateToken fonk. async ile çalıştığı için
@@ -76,6 +79,121 @@ router.post("/signup", async(req,res) => {
     
 })
 
+// kullanıcı email doğrulama
+const sendVerificationEmail = ({ _id, email }, res) => {
+    const currentUrl = "http://localhost:5000/auth"
+
+    const uniqueString = uuidv4() + _id
+
+    //mail options
+    const mailOptions = {
+        from: process.env.AUTH_EMAIL,
+        to: email,
+        subject: "Mailini Doğrula",
+        html: `<p>Kayıt ve Giriş işlemleri için lütfen mailinizi doğrulayınız.</p><p>Bu link <b>60dk sonra geçersiz olacaktır.</b></p><p>İlerlemek için <a href=${currentUrl + "/verify/" + _id + "/" + uniqueString} >buraya</a> tıklayınız</p>`
+    }
+
+    //hash the uniquesString
+    const hashedUniquesString = CryptoJS.AES.encrypt(uniqueString, process.env.PASSPHRASE_SECRET).toString()
+    if (!hashedUniquesString) {
+        console.log("error while hashing..")
+        //return res.status(400).send("error while hashing..") 
+    }
+
+    const newVerification = new UserVerification({
+        userId: _id,
+        uniqueString: hashedUniquesString,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + parseInt(process.env.EMAIL_VALID_EXP)
+    })
+
+    newVerification.save()
+        .then(() => {
+            mailTransporter(mailOptions, "Email doğrulama linki gönderildi.")
+        })
+        .catch(err => {
+            console.log("Doğrulama email verisi kaydedilemedi:\n", err)
+            //return res.status(400).send("Doğrulama email verisi kaydedilemedi")
+        })
+
+}
+
+//email doğrula
+router.get("/verify/:userId/:uniqueString", async (req,res) => {
+    let { userId, uniqueString } = req.params  //? neden params kullanıldı neden req.body değil
+    
+    UserVerification.find({ userId })
+        .then(result => {
+            if (result.length > 0) { // kullanıcı doğrulama kaydı mevcut
+                const { expiresAt } = result[0]
+
+                if (expiresAt < Date.now()) {//sıfırlama tokenının zamanı geçtiyse, SİL
+                    UserVerification.deleteOne({ userId })
+                    .then(result => {   
+                        //sıfırlama kaydı silindi
+
+                        User.deleteOne({ _id: userId })     //kullanıcı da boşuna yer kaplamasın eğer ki emailini doğrulayamıyorsa.
+                            .then(() => {
+                                console.log(err)
+                                return res.status(400).send("Link geçersiz. Lütfen tekrar kaydolun")
+                            })
+                            .catch(err => {
+                                console.log(err)
+                                return res.status(400).send("Şifre sıfırlama linki geçersiz")
+                            })
+
+                    })
+                    .catch(err => { //kayıt silme başarısız
+                        console.log(err)
+                        return res.status(400).send("Email doğrulama isteği kaydı silinmesi başarısız")
+                    })
+                
+                } else {    //GEÇERLİ doğrulama kayıt var
+                    const originalUniqueString = CryptoJS.AES.decrypt(result[0].uniqueString, process.env.PASSPHRASE_SECRET).toString(CryptoJS.enc.Utf8)                    
+                    if (originalUniqueString === uniqueString ) { // eşleşme başarılı
+                        
+                        User.updateOne({ _id: userId }, { verified: true })
+                            .then(() => {   
+                                // update başarılı. 
+                                
+                                //Şimdi doğrulama kaydını sil
+                                UserVerification.deleteOne({ userId })
+                                    .then(() => {   //email doğrulama kaydı ve sıfırlama kaydı silindi
+                                        return res.status(200).send("Doğrulama BAŞARILI \nDoğrulama email kaydı silindi") 
+                                    })
+                                    .catch(err => {
+                                        console.log(err)
+                                        return res.status(400).send("doğrulama email kaydını silinirken hata") 
+                                    })
+
+                            }) 
+                            .catch(err => {
+                                console.log(err)
+                                return res.status(400).send("kullanıcı email doğrulama başarısız") 
+                            })
+
+                    } else
+                        return res.status(400).send("Eşleşme başarısız")
+                }
+
+            } else {    // kullanıcı doğrulama kaydı mevcut değil
+                let message = "Hesap kaydı bulunamadı(Kaydol) veya hesap doğrulanmış(Giriş Yap)."
+                res.redirect(`/verified/error=true&message=${message}`)
+            }
+        })
+        .catch(err => {
+            console.log(err)
+            let message = "Kullanıcı doğrulama kaydı hata"
+            res.redirect(`/verified/error=true&message=${message}`)
+            //return res.status(400).send("Kullanıcı doğrulama kaydı hata")
+        })
+})
+
+//doğrulanmış sayfa yönlendirmesi
+router.get("/verified", async (req,res) => {
+    res.status(200).json("DOĞRULAMA BAŞARILI. Bu başarıyı LinkedIN de paylaşmalısın:))")
+})
+
 // tüm kullanıcıları GETir (get olduğu için localhost:5000/auth/alluser a da bak)
 router.get("/alluser", async (req,res) => {
     try {
@@ -90,6 +208,11 @@ router.post("/login", async (req,res) => {
     if(!user) {
         console.log("Geçersiz giriş.. Invalid credentials")
         return res.status(401).send("Geçersiz giriş.." )
+    }
+
+    //kullanıcı doğrulama yapmış mı
+    if (!user.verified) {
+        return res.status(400).json("Email henüz doğrulanmadı. Lütfen mailinizi kontrol edin")
     }
     
     //parola kontrolü de gerekli deşifre ederek..
@@ -148,8 +271,8 @@ router.post("/requestPsswrdReset", async (req,res) => {
         return res.status(400).send("ilgili mailin hesabı bulunamadı")
     } 
     
-    /*if (!user[0].verified...)
-        return res.json({ message: "Email daha doğrulanamadı. Maili kontrol ediniz" })*/
+    if (!(user[0]?.verified))
+        return res.status(400).send("Email daha doğrulanamadı. Maili kontrol ediniz")
 
 
     const sendResetEmail = ( user, redirectUrl, res ) => {
@@ -187,43 +310,12 @@ router.post("/requestPsswrdReset", async (req,res) => {
 
                 newPasswordReset.save()
                     .then(() => {
-                        let transporter = nodemailer.createTransport({
-                            service: 'Gmail',   
-                            auth: {
-                                user: process.env.AUTH_EMAIL,
-                                pass: "awqymkvkagtimfnc", //process.env.AUTH_PASS
-                            },
-                            tls: {
-                                rejectUnauthorized: false
-                            }
-                        })
-
-                        transporter.verify((error, success) => {
-                            if (error)
-                                console.log(error)
-                            else {
-                                console.log("Ready for message")
-                                console.log(success)
-                            }
-                        })
-
-                        transporter.sendMail(mailOptions)
-                            .then(() => {
-                                res.status(200).send("şifre sıfırlama emaili gönderildi.")
-                            })
-                            .catch(err => {
-                                console.log(err)
-                                return res.status(400).send("Şifre sıfırlama email başarısız")
-
-                            })
+                        return mailTransporter(mailOptions, "şifre sıfırlama emaili gönderildi.")
                     })
                     .catch(err => {
                         console.log(err)
                         return res.status(400).send("Şifre sıfırlama kaydedilemedi")
                     })
-
-
-
 
             })
             .catch(err => {
@@ -234,6 +326,8 @@ router.post("/requestPsswrdReset", async (req,res) => {
 
     //console.log("user::: ",user)
     sendResetEmail(user, redirectUrl, res)
+
+    res.status(200).json("helllo")
 
 })
 
