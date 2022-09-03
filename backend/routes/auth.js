@@ -81,7 +81,7 @@ router.post("/signup", async(req,res) => {
 
 // kullanıcı email doğrulama
 const sendVerificationEmail = ({ _id, email }, res) => {
-    const currentUrl = "http://localhost:5000/auth"
+    const currentUrl = "http://localhost:3000"
 
     const uniqueString = uuidv4() + _id
 
@@ -134,7 +134,7 @@ router.get("/verify/:userId/:uniqueString", async (req,res) => {
 
                         User.deleteOne({ _id: userId })     //kullanıcı da boşuna yer kaplamasın eğer ki emailini doğrulayamıyorsa.
                             .then(() => {
-                                console.log(err)
+                                console.log("Link geçersiz. Lütfen tekrar kaydolun")
                                 return res.status(400).send("Link geçersiz. Lütfen tekrar kaydolun")
                             })
                             .catch(err => {
@@ -155,6 +155,7 @@ router.get("/verify/:userId/:uniqueString", async (req,res) => {
                         User.updateOne({ _id: userId }, { verified: true })
                             .then(() => {   
                                 // update başarılı. 
+                                return res.status(200).send("Doğrulama BAŞARILI \nDoğrulama email kaydı silindi") 
                                 
                                 //Şimdi doğrulama kaydını sil
                                 UserVerification.deleteOne({ userId })
@@ -363,7 +364,6 @@ router.post("/resetPassword", async (req,res) => {
                             return res.status(400).send("error while hashing..") 
                         }
 
-                        //? id mi email mi 
                         User.updateOne({ _id: userId }, { password: hashednewPasswords })
                             .then(() => {   
                                 // update başarılı. 

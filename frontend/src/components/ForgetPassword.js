@@ -51,7 +51,7 @@ const ForgetPassword = () => {
 
                         <h1>Şifre Sıfırlama</h1>
                         <form onSubmit={handleSubmit}>
-                            <label htmlFor="username">Email:</label>
+                            <label htmlFor="email">Email:</label>
                             <input
                                 type="text"
                                 id="email"

@@ -13,6 +13,7 @@ import Missing from "./components/Missing";
 import RequireAuth from "./components/RequireAuth";
 import ForgetPassword from "./components/ForgetPassword";
 import ResetPassword from "./components/ResetPassword";
+import EmailVerify from "./components/EmailVerify";
 
 const ROLES = {
   "User": 2001,
@@ -33,6 +34,7 @@ function App() {
           <Route path="unauthorized" element={<Unauthorized />} />
           <Route path="forgetpassword" element={<ForgetPassword />} />
           <Route path="resetpassword/:userId/:resetString" element={<ResetPassword />} />
+          <Route path="verify/:userId/:uniqueString" element={<EmailVerify />} />
           
           {/* özel izinli olmalı */}
           <Route element={<RequireAuth allowedRoles={[ROLES.User]} />}>
